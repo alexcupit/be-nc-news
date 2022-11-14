@@ -15,7 +15,7 @@ describe('/api/topics', () => {
       .expect(200)
       .then(({ body }) => {
         expect(body.topics).toEqual(expect.any(Array));
-        expect(body.topics);
+        expect(body.topics.lenght).toBeGreaterThan(0);
         body.topics.forEach((park) => {
           expect(park).toMatchObject({
             slug: expect.any(String),

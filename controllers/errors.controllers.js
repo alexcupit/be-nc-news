@@ -6,5 +6,5 @@ exports.handleCustomErrors = (err, req, res, next) => {
 
 exports.handleServerErrors = (err, req, res, next) => {
   console.log('unhandled error: ', err);
-  res.status(550).send({ msg: 'internal server error!' });
+  res.status(500).send({ msg: 'internal server error!' });
 };
