@@ -76,6 +76,41 @@ describe('/api/articles', () => {
   });
 });
 
+describe('/api/articles/:article_id', () => {
+  test('GET 200 - should respond with an article object of the same id, with properties of author, title, article_id, body, topic, created_at and votes ', () => {
+    return request(app)
+      .get('/api/articles/1')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.article).toMatchObject({
+          article_id: 1,
+          author: expect.any(String),
+          body: expect.any(String),
+          title: expect.any(String),
+          topic: expect.any(String),
+          created_at: expect.any(String),
+          votes: expect.any(Number),
+        });
+      });
+  });
+  test('GET 404 - should respond with "msg: id not found" if the input id does not reference a defined row in the database', () => {
+    return request(app)
+      .get('/api/articles/99999')
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe('id not found');
+      });
+  });
+  test('GET 400 - should respond with "msg: input uses invalid data type" if the input id does not meet schema validation (needs to be a number)', () => {
+    return request(app)
+      .get('/api/articles/hello')
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('input uses invalid data type');
+      });
+  });
+});
+
 describe('Error handling', () => {
   test('GET 404 - should respond with "msg: route not found" when a bad path is used eg /api/topcs', () => {
     return request(app)
