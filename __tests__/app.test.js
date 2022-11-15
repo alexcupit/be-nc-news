@@ -161,6 +161,50 @@ describe('/api/articles/:article_id/comments', () => {
         expect(body.msg).toBe('input uses invalid data type');
       });
   });
+  test('POST 201 - should take a comment body and username and respond with the new comment object', () => {
+    const newComment = { username: 'butter_bridge', body: 'test comment' };
+    return request(app)
+      .post('/api/articles/2/comments')
+      .send(newComment)
+      .expect(201)
+      .then(({ body }) => {
+        expect(body.comment).toMatchObject({
+          body: newComment.body,
+          author: newComment.username,
+          comment_id: expect.any(Number),
+          article_id: 2,
+          votes: 0,
+          created_at: expect.any(String),
+        });
+      });
+  });
+  test('POST 400 - posted body missing required information', () => {
+    return request(app)
+      .post('/api/articles/1/comments')
+      .send({ body: 'test with no username on body' })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('posted body missing required fields');
+      });
+  });
+  test('POST 400 - article id does not exist, violates foreign key', () => {
+    return request(app)
+      .post('/api/articles/99999/comments')
+      .send({ username: 'butter_bridge', body: 'test comment' })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('foreign key violation');
+      });
+  });
+  test('POST 400 - username does not exist, violates foreign key', () => {
+    return request(app)
+      .post('/api/articles/1/comments')
+      .send({ username: 'fakeusername', body: 'test body' })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('foreign key violation');
+      });
+  });
 });
 
 describe('Error handling', () => {

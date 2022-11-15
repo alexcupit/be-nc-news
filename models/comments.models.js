@@ -1,4 +1,5 @@
 const db = require('../db/connection.js');
+const { toLocaleString } = require('../db/data/test-data/users.js');
 const { fetchArticleById } = require('./articles.models.js');
 
 exports.fetchCommentsByArticleId = (article_id) => {
@@ -15,5 +16,23 @@ exports.fetchCommentsByArticleId = (article_id) => {
     })
     .then((res) => {
       return res.rows;
+    });
+};
+
+exports.insertCommentByArticleId = (article_id, author, body) => {
+  return db
+    .query(
+      `
+    INSERT INTO comments
+        (body, author, article_id, votes)
+    VALUES
+        ($3, $2, $1, 0)
+    RETURNING*;
+    `,
+      [article_id, author, body]
+    )
+    .then((res) => {
+      console.log(res.rows[0].body.length);
+      return res.rows[0];
     });
 };
