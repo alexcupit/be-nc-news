@@ -109,6 +109,76 @@ describe('/api/articles/:article_id', () => {
         expect(body.msg).toBe('input uses invalid data type');
       });
   });
+  test('PATCH 200 - responds with the updated article, with amended votes, as an object', () => {
+    return request(app)
+      .patch('/api/articles/1')
+      .send({ inc_votes: 1 })
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.article).toMatchObject({
+          article_id: 1,
+          votes: 101,
+          body: expect.any(String),
+          author: expect.any(String),
+          title: expect.any(String),
+          topic: expect.any(String),
+          created_at: expect.any(String),
+        });
+      });
+  });
+  test('PATCH 200 - responds with a negative number when posted body subtracts votes below 0', () => {
+    return request(app)
+      .patch('/api/articles/2')
+      .send({ inc_votes: -50 })
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.article).toMatchObject({
+          article_id: 2,
+          votes: -50,
+          body: expect.any(String),
+          author: expect.any(String),
+          title: expect.any(String),
+          topic: expect.any(String),
+          created_at: expect.any(String),
+        });
+      });
+  });
+  test('PATCH 400 - posted body does not contain required key/misspelt key', () => {
+    return request(app)
+      .patch('/api/articles/1')
+      .send({ inc_vote: 1 })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('posted body missing required fields');
+      });
+  });
+  test('PATCH 400 - inc_votes in posted body is of the wrong data type', () => {
+    return request(app)
+      .patch('/api/articles/1')
+      .send({ inc_votes: 'banana' })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('input uses invalid data type');
+      });
+  });
+  test('PATCH 404 - article_id is valid but does not exist', () => {
+    return request(app)
+      .patch('/api/articles/9999')
+      .send({ inc_votes: 10 })
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe('id not found');
+      });
+  });
+  test('PATCH 400 - article_id is invalid data type', () => {
+    return request(app)
+      .patch('/api/articles/banana')
+      .send({ inc_votes: 10 })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('input uses invalid data type');
+      });
+  });
 });
 
 describe('/api/articles/:article_id/comments', () => {
