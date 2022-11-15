@@ -187,6 +187,24 @@ describe('/api/articles/:article_id/comments', () => {
         expect(body.msg).toBe('posted body missing required fields');
       });
   });
+  test('POST 400 - posted body has error in expected object key of username', () => {
+    return request(app)
+      .post('/api/articles/1/comments')
+      .send({ usernme: 'butter_bridge', body: 'test with no username on body' })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('posted body missing required fields');
+      });
+  });
+  test('POST 400 - posted body has error in expected object key of body', () => {
+    return request(app)
+      .post('/api/articles/1/comments')
+      .send({ username: 'butter_bridge', bdy: 'test with no username on body' })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('posted body missing required fields');
+      });
+  });
   test('POST 400 - article id does not exist, violates foreign key', () => {
     return request(app)
       .post('/api/articles/99999/comments')
@@ -194,6 +212,15 @@ describe('/api/articles/:article_id/comments', () => {
       .expect(400)
       .then(({ body }) => {
         expect(body.msg).toBe('foreign key violation');
+      });
+  });
+  test('POST 400 - article id is of the wrong data type', () => {
+    return request(app)
+      .post('/api/articles/hello/comments')
+      .send({ username: 'butter_bridge', body: 'test comment' })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('input uses invalid data type');
       });
   });
   test('POST 400 - username does not exist, violates foreign key', () => {
