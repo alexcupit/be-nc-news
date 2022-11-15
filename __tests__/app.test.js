@@ -304,6 +304,24 @@ describe('/api/articles/:article_id/comments', () => {
   });
 });
 
+describe('/api/users', () => {
+  test('GET 200 - responds with an array of user objects, each with username, name and avatar_url properties', () => {
+    return request(app)
+      .get('/api/users')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.users.length).toBeGreaterThan(0);
+        body.users.forEach((user) => {
+          expect(user).toMatchObject({
+            username: expect.any(String),
+            name: expect.any(String),
+            avatar_url: expect.any(String),
+          });
+        });
+      });
+  });
+});
+
 describe('Error handling', () => {
   test('GET 404 - should respond with "msg: route not found" when a bad path is used eg /api/topcs', () => {
     return request(app)
