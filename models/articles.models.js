@@ -31,3 +31,18 @@ exports.fetchArticleById = (article_id) => {
       } else return res.rows[0];
     });
 };
+
+exports.updateArticleById = (article_id, inc_votes) => {
+  return this.fetchArticleById(article_id)
+    .then(() => {
+      return db.query(
+        `
+    UPDATE articles
+    SET votes = votes + $2
+    WHERE article_id = $1
+    RETURNING *;`,
+        [article_id, inc_votes]
+      );
+    })
+    .then((res) => res.rows[0]);
+};
