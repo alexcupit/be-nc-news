@@ -1,5 +1,4 @@
 const db = require('../db/connection.js');
-const { toLocaleString } = require('../db/data/test-data/users.js');
 const { fetchArticleById } = require('./articles.models.js');
 
 exports.fetchCommentsByArticleId = (article_id) => {
