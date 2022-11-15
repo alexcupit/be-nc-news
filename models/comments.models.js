@@ -17,3 +17,20 @@ exports.fetchCommentsByArticleId = (article_id) => {
       return res.rows;
     });
 };
+
+exports.insertCommentByArticleId = (article_id, author, body) => {
+  return db
+    .query(
+      `
+    INSERT INTO comments
+        (body, author, article_id, votes)
+    VALUES
+        ($3, $2, $1, 0)
+    RETURNING*;
+    `,
+      [article_id, author, body]
+    )
+    .then((res) => {
+      return res.rows[0];
+    });
+};
