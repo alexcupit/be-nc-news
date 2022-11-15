@@ -1,4 +1,4 @@
 node_modules
 .env.*
 scraps.*
-sandbox.*
+sandbox*
