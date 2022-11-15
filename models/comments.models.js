@@ -32,7 +32,6 @@ exports.insertCommentByArticleId = (article_id, author, body) => {
       [article_id, author, body]
     )
     .then((res) => {
-      console.log(res.rows[0].body.length);
       return res.rows[0];
     });
 };
