@@ -137,6 +137,14 @@ describe('/api/articles/:article_id/comments', () => {
         expect(body.comments).toBeSortedBy('created_at', { descending: true });
       });
   });
+  test('GET 200 - should respond with an empty array if article_id exists but there are no comments', () => {
+    return request(app)
+      .get('/api/articles/2/comments')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.comments).toEqual([]);
+      });
+  });
   test('GET 404 - should respond with "msg: id not found" if the input id does not reference a defined row in the database', () => {
     return request(app)
       .get('/api/articles/9999/comments')
