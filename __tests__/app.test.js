@@ -111,6 +111,58 @@ describe('/api/articles/:article_id', () => {
   });
 });
 
+describe('/api/articles/:article_id/comments', () => {
+  test('GET 200 - should respond with an array of comments for the given article_id, where each comment has the following properties: comment_id, body, author, votes and created_at', () => {
+    return request(app)
+      .get('/api/articles/1/comments')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.comments.length).toBe(11);
+        body.comments.forEach((comment) =>
+          expect(comment).toMatchObject({
+            comment_id: expect.any(Number),
+            body: expect.any(String),
+            author: expect.any(String),
+            votes: expect.any(Number),
+            created_at: expect.any(String),
+          })
+        );
+      });
+  });
+  test('GET 200 - comments should be ordered by the most recent comment first', () => {
+    return request(app)
+      .get('/api/articles/1/comments')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.comments).toBeSortedBy('created_at', { descending: true });
+      });
+  });
+  test('GET 200 - should respond with an empty array if article_id exists but there are no comments', () => {
+    return request(app)
+      .get('/api/articles/2/comments')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.comments).toEqual([]);
+      });
+  });
+  test('GET 404 - should respond with "msg: id not found" if the input id does not reference a defined row in the database', () => {
+    return request(app)
+      .get('/api/articles/9999/comments')
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe('id not found');
+      });
+  });
+  test('GET 400 - should respond with "msg: input uses invalid data type if the input id does not meet schema validation (needs to be a number', () => {
+    return request(app)
+      .get('/api/articles/hello/comments')
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('input uses invalid data type');
+      });
+  });
+});
+
 describe('Error handling', () => {
   test('GET 404 - should respond with "msg: route not found" when a bad path is used eg /api/topcs', () => {
     return request(app)
