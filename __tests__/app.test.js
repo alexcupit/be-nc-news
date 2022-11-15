@@ -74,6 +74,136 @@ describe('/api/articles', () => {
         expect(body.articles).toBeSortedBy('created_at', { descending: true });
       });
   });
+  test('GET 200 - when given a topic query, should respond with an array of articles with the apprpriate topic', () => {
+    return request(app)
+      .get('/api/articles?topic=mitch')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles.length).toBe(11);
+        body.articles.forEach((article) => {
+          expect(article).toMatchObject({
+            topic: 'mitch',
+            article_id: expect.any(Number),
+            author: expect.any(String),
+            title: expect.any(String),
+            created_at: expect.any(String),
+            votes: expect.any(Number),
+          });
+        });
+      });
+  });
+  test('GET 200 - topic query: should be able to accept case insensitive values', () => {
+    return request(app)
+      .get('/api/articles?topic=MiTcH')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles.length).toBe(11);
+        body.articles.forEach((article) => {
+          expect(article).toMatchObject({
+            topic: 'mitch',
+            article_id: expect.any(Number),
+            author: expect.any(String),
+            title: expect.any(String),
+            created_at: expect.any(String),
+            votes: expect.any(Number),
+          });
+        });
+      });
+  });
+  test('GET 400 - topic query: should respond with error message when passed a topic query that does not exist, including potential SQL injection', () => {
+    return request(app)
+      .get('/api/articles?topic=utterrubbishmaybesql')
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('invalid topic query');
+      });
+  });
+  test('GET 400 - topic query: should respond with an error when query is of the wrong data type', () => {
+    return request(app)
+      .get('/api/articles?topic=123456')
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('invalid topic query');
+      });
+  });
+  test('GET 200 - sort_by query: should sort results by given column name, defaulting to date', () => {
+    return request(app)
+      .get('/api/articles?sort_by=title')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles).toBeSortedBy('title', { descending: true });
+      });
+  });
+  test('GET 200 - sort_by query: is case insensitive', () => {
+    return request(app)
+      .get('/api/articles?sort_by=AuThoR')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles).toBeSortedBy('author', { descending: true });
+      });
+  });
+  test('GET 400 - sort_by query: should respond with an error if passed invalid column', () => {
+    return request(app)
+      .get('/api/articles?sort_by=banana')
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('invalid sort_by query');
+      });
+  });
+  test('GET 200 - order: should default to desc and accept asc as a query and be case insensitive', () => {
+    return request(app)
+      .get('/api/articles?order=aSc')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles).toBeSortedBy('created_at');
+      });
+  });
+  test('GET 400 - order: should not accept a value other than asc or desc', () => {
+    return request(app)
+      .get('/api/articles?order=hithere')
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('order must be asc or desc');
+      });
+  });
+  test('GET 200 - should accept a combination of topic and sort_by queries', () => {
+    return request(app)
+      .get('/api/articles?topic=mitch&sort_by=votes')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles).toBeSortedBy('votes', { descending: true });
+        expect(body.articles.length).toBe(11);
+        body.articles.forEach((article) => {
+          expect(article).toMatchObject({
+            topic: 'mitch',
+            article_id: expect.any(Number),
+            author: expect.any(String),
+            title: expect.any(String),
+            created_at: expect.any(String),
+            votes: expect.any(Number),
+          });
+        });
+      });
+  });
+  test('GET 200 - should accept a combination of topic, sort_by and order queries', () => {
+    return request(app)
+      .get('/api/articles?topic=mitch&sort_by=article_id&order=asc')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles.length).toBe(11);
+        expect(body.articles).toBeSortedBy('article_id');
+        body.articles.forEach((article) => {
+          expect(article).toMatchObject({
+            topic: 'mitch',
+            article_id: expect.any(Number),
+            author: expect.any(String),
+            title: expect.any(String),
+            created_at: expect.any(String),
+            votes: expect.any(Number),
+          });
+        });
+      });
+  });
 });
 
 describe('/api/articles/:article_id', () => {

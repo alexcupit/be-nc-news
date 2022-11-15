@@ -1,19 +1,50 @@
 const db = require('../db/connection.js');
 
-exports.fetchArticles = () => {
-  return db
-    .query(
-      `
-        SELECT article_id, title, articles.author, topic, articles.created_at, articles.votes, COUNT(comment_id) AS comment_count
-        FROM articles
-        LEFT JOIN comments
-        USING (article_id)
-        GROUP BY articles.article_id
-        ORDER BY articles.created_at DESC;`
-    )
-    .then((res) => {
-      return res.rows;
-    });
+exports.fetchArticles = (topic, sort_by = 'created_at', order = 'DESC') => {
+  const validTopics = ['mitch', 'cats', 'paper'];
+  const validColumns = [
+    'title',
+    'topic',
+    'author',
+    'body',
+    'votes',
+    'created_at',
+    'article_id',
+  ];
+  const validOrders = ['ASC', 'DESC'];
+  let queryValues = [];
+
+  let queryStr = `
+    SELECT article_id, title, articles.author, topic, articles.created_at, articles.votes, COUNT(comment_id) AS comment_count
+    FROM articles
+    LEFT JOIN comments
+    USING (article_id)`;
+
+  if (topic) {
+    const lowerTopic = topic.toLowerCase();
+    if (validTopics.includes(lowerTopic)) {
+      queryValues.push(lowerTopic);
+      queryStr += ` WHERE topic = $1`;
+    } else {
+      return Promise.reject({ status: 400, msg: 'invalid topic query' });
+    }
+  }
+
+  if (!validColumns.includes(sort_by.toLowerCase())) {
+    return Promise.reject({ status: 400, msg: 'invalid sort_by query' });
+  }
+
+  if (!validOrders.includes(order.toUpperCase())) {
+    return Promise.reject({ status: 400, msg: 'order must be asc or desc' });
+  }
+
+  queryStr += ` 
+    GROUP BY articles.article_id
+    ORDER BY articles.${sort_by.toLowerCase()} ${order};`;
+
+  return db.query(queryStr, queryValues).then((res) => {
+    return res.rows;
+  });
 };
 
 exports.fetchArticleById = (article_id) => {
