@@ -4,10 +4,25 @@ const {
   updateArticleById,
 } = require('../models/articles.models');
 
-exports.getArticles = (req, res) => {
-  fetchArticles().then((articles) => {
-    res.status(200).send({ articles });
+exports.getArticles = (req, res, next) => {
+  const { topic, sort_by, order } = req.query;
+  const validQueryKeys = ['topic', 'sort_by', 'order'];
+  const queryKeys = Object.keys(req.query);
+  const queryCheck = [];
+  queryKeys.forEach((key) => {
+    if (!validQueryKeys.includes(key)) {
+      queryCheck.push(false);
+    }
   });
+  if (queryCheck.includes(false)) {
+    res.status(400).send({ msg: 'invalid query key' });
+  } else {
+    fetchArticles(topic, sort_by, order)
+      .then((articles) => {
+        res.status(200).send({ articles });
+      })
+      .catch(next);
+  }
 };
 
 exports.getArticleById = (req, res, next) => {
