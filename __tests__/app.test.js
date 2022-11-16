@@ -324,12 +324,6 @@ describe('/api/articles/:article_id', () => {
       .then(({ body }) => {
         expect(body.article).toMatchObject({
           article_id: 1,
-          author: expect.any(String),
-          body: expect.any(String),
-          title: expect.any(String),
-          topic: expect.any(String),
-          created_at: expect.any(String),
-          votes: expect.any(Number),
           comment_count: '11',
         });
       });
