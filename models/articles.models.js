@@ -1,7 +1,6 @@
 const db = require('../db/connection.js');
 
 exports.fetchArticles = (topic, sort_by = 'created_at', order = 'DESC') => {
-  const validTopics = ['mitch', 'cats', 'paper'];
   const validColumns = [
     'title',
     'topic',
@@ -21,13 +20,8 @@ exports.fetchArticles = (topic, sort_by = 'created_at', order = 'DESC') => {
     USING (article_id)`;
 
   if (topic) {
-    const lowerTopic = topic.toLowerCase();
-    if (validTopics.includes(lowerTopic)) {
-      queryValues.push(lowerTopic);
-      queryStr += ` WHERE topic = $1`;
-    } else {
-      return Promise.reject({ status: 400, msg: 'invalid topic query' });
-    }
+    queryValues.push(topic.toLowerCase());
+    queryStr += ` WHERE topic = $1`;
   }
 
   if (!validColumns.includes(sort_by.toLowerCase())) {

@@ -110,20 +110,20 @@ describe('/api/articles', () => {
         });
       });
   });
-  test('GET 400 - topic query: should respond with error message when passed a topic query that does not exist, including potential SQL injection', () => {
+  test('GET 200 - topic query: should respond with an empty array if valid topic but has no results', () => {
     return request(app)
       .get('/api/articles?topic=utterrubbishmaybesql')
-      .expect(400)
+      .expect(200)
       .then(({ body }) => {
-        expect(body.msg).toBe('invalid topic query');
+        expect(body.articles).toEqual([]);
       });
   });
-  test('GET 400 - topic query: should respond with an error when query is of the wrong data type', () => {
+  test('GET 200 - topic query: should respond with an empty array when query value is of the wrong data type', () => {
     return request(app)
       .get('/api/articles?topic=123456')
-      .expect(400)
+      .expect(200)
       .then(({ body }) => {
-        expect(body.msg).toBe('invalid topic query');
+        expect(body.articles).toEqual([]);
       });
   });
   test('GET 200 - sort_by query: should sort results by given column name, defaulting to date', () => {
@@ -202,6 +202,14 @@ describe('/api/articles', () => {
             votes: expect.any(Number),
           });
         });
+      });
+  });
+  test('GET 400 - should respond with an error if invalid query key is used', () => {
+    return request(app)
+      .get('/api/articles?banana=true')
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('invalid query key');
       });
   });
 });
