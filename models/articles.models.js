@@ -45,9 +45,12 @@ exports.fetchArticleById = (article_id) => {
   return db
     .query(
       `
-        SELECT * 
+        SELECT article_id, title, articles.author, topic, articles.body, articles.created_at, articles.votes, COUNT(comment_id) AS comment_count
         FROM articles
-        WHERE article_id = $1;`,
+        LEFT JOIN comments
+        USING (article_id)
+        WHERE articles.article_id = $1
+        GROUP BY articles.article_id;`,
       [article_id]
     )
     .then((res) => {

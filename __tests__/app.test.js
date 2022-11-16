@@ -317,6 +317,23 @@ describe('/api/articles/:article_id', () => {
         expect(body.msg).toBe('input uses invalid data type');
       });
   });
+  test('GET 200 - should now respond with an article object of the same id, with properties of author, title, article_id, body, topic, created_at, votes and comment_count', () => {
+    return request(app)
+      .get('/api/articles/1')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.article).toMatchObject({
+          article_id: 1,
+          author: expect.any(String),
+          body: expect.any(String),
+          title: expect.any(String),
+          topic: expect.any(String),
+          created_at: expect.any(String),
+          votes: expect.any(Number),
+          comment_count: '11',
+        });
+      });
+  });
 });
 
 describe('/api/articles/:article_id/comments', () => {
