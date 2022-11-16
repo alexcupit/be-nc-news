@@ -8,13 +8,11 @@ exports.getArticles = (req, res, next) => {
   const { topic, sort_by, order } = req.query;
   const validQueryKeys = ['topic', 'sort_by', 'order'];
   const queryKeys = Object.keys(req.query);
-  const queryCheck = [];
-  queryKeys.forEach((key) => {
-    if (!validQueryKeys.includes(key)) {
-      queryCheck.push(false);
-    }
-  });
-  if (queryCheck.includes(false)) {
+  if (
+    !queryKeys.every((key) => {
+      return validQueryKeys.includes(key);
+    })
+  ) {
     res.status(400).send({ msg: 'invalid query key' });
   } else {
     fetchArticles(topic, sort_by, order)
