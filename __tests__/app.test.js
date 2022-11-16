@@ -471,6 +471,33 @@ describe('/api/users', () => {
   });
 });
 
+describe('/api/comments/:comment_id', () => {
+  test('DELETE 204 - should delete the comment with the corresponding comment_id and give no response body', () => {
+    return request(app)
+      .delete('/api/comments/1')
+      .expect(204)
+      .then(({ body }) => {
+        expect(body).toEqual({});
+      });
+  });
+  test('DELETE 404 - valid comment id but does not exist in db', () => {
+    return request(app)
+      .delete('/api/comments/99999')
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe('id not found');
+      });
+  });
+  test('DELETE 400 - invalid data type for comment id', () => {
+    return request(app)
+      .delete('/api/comments/banana')
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('input uses invalid data type');
+      });
+  });
+});
+
 describe('Error handling', () => {
   test('GET 404 - should respond with "msg: route not found" when a bad path is used eg /api/topcs', () => {
     return request(app)
