@@ -1,8 +1,8 @@
 # Northcoders News API
 
-This app has been created as part of the Northcoders Software Enginerring course.
+This app has been created as part of the Northcoders Software Engineering course.
 
-The project allows the user to access a variety of endpoints that interact with a database of news articles. The server has been hosted which links to a hosted database and it can also be used locally, simply follow the set up instructions below.
+The project allows the user to access a variety of endpoints that interact with a database of news articles. The server has been hosted which links to a hosted version of the database and it can also be used locally, simply follow the set up instructions below.
 
 ## Hosted Version
 
@@ -52,6 +52,14 @@ The test suite can be executed using:
 npm test
 ```
 
-This will run unit testing for the util functions used in the database seeding and also integration testing for the server endpoints.
+This will run unit testing for the util functions used in the database seeding and also integration testing for the server endpoints. Testing will use the test data and the listener created through jest.
+
+For running local requests, use a request handler such as Insomnia on port 9090. The listener can then be initiated using:
+
+```
+npm run dev
+```
+
+The above will seed the database and then use nodemon to listen for requests.
 
 Enjoy interacting with this database!
