@@ -471,6 +471,29 @@ describe('/api/users', () => {
   });
 });
 
+describe('/api/users/:username', () => {
+  test('GET 200 - responds with a user object with properties of username, avatar_url and name', () => {
+    return request(app)
+      .get('/api/users/butter_bridge')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.user).toMatchObject({
+          username: 'butter_bridge',
+          avatar_url: expect.any(String),
+          name: 'jonny',
+        });
+      });
+  });
+  test('GET 404 - username does not exist in database', () => {
+    return request(app)
+      .get('/api/users/fakeusername')
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe('username not found');
+      });
+  });
+});
+
 describe('/api/comments/:comment_id', () => {
   test('DELETE 204 - should delete the comment with the corresponding comment_id and give no response body', () => {
     return request(app)
@@ -499,6 +522,54 @@ describe('/api/comments/:comment_id', () => {
   test('DELETE 400 - invalid data type for comment id', () => {
     return request(app)
       .delete('/api/comments/banana')
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('input uses invalid data type');
+      });
+  });
+  test('PATCH 200 - posted body changes the votes for the corresponding comment id', () => {
+    return request(app)
+      .patch('/api/comments/1')
+      .send({ inc_votes: 10 })
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.comment).toMatchObject({
+          comment_id: 1,
+          votes: 26,
+        });
+      });
+  });
+  test('PATCH 404 - should respond with an error if valid id but non existent', () => {
+    return request(app)
+      .patch('/api/comments/9999')
+      .send({ inc_votes: 10 })
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe('id not found');
+      });
+  });
+  test('PATCH 400 - should respond with an error if invalid comment id', () => {
+    return request(app)
+      .patch('/api/comments/banana')
+      .send({ inc_votes: 10 })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('input uses invalid data type');
+      });
+  });
+  test('PATCH 400 - patch body is missing the required property of inc_votes', () => {
+    return request(app)
+      .patch('/api/comments/2')
+      .send({ increment_votes: 10 })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('posted body missing required fields');
+      });
+  });
+  test('PATCH 400 - patch body has wrong data type for database on key of inc_votes', () => {
+    return request(app)
+      .patch('/api/comments/2')
+      .send({ inc_votes: 'banana' })
       .expect(400)
       .then(({ body }) => {
         expect(body.msg).toBe('input uses invalid data type');
