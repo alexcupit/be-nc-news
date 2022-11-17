@@ -506,6 +506,27 @@ describe('/api/comments/:comment_id', () => {
   });
 });
 
+describe('/api', () => {
+  test('GET 200 - should respond with a JSON of all available nedpoints with useful info for each', () => {
+    return request(app)
+      .get('/api')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body).toMatchObject({
+          'GET /api': expect.any(Object),
+          'GET /api/topics': expect.any(Object),
+          'GET /api/articles': expect.any(Object),
+          'GET /api/articles/:article_id': expect.any(Object),
+          'GET /api/articles/:article_id/comments': expect.any(Object),
+          'POST /api/articles/:article_id/comments': expect.any(Object),
+          'PATCH /api/articles/:article_id': expect.any(Object),
+          'GET /api/users': expect.any(Object),
+          'DELETE /api/comments/:comment_id': expect.any(Object),
+        });
+      });
+  });
+});
+
 describe('Error handling', () => {
   test('GET 404 - should respond with "msg: route not found" when a bad path is used eg /api/topcs', () => {
     return request(app)
