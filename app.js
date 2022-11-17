@@ -21,6 +21,7 @@ const {
 } = require('./controllers/comments.controllers');
 
 const { getUsers } = require('./controllers/users.controllers');
+const { endpoints } = require('./endpoints');
 
 const app = express();
 app.use(express.json());
@@ -40,6 +41,10 @@ app.get('/api/users', getUsers);
 app.patch('/api/articles/:article_id', patchArticleById);
 
 app.delete('/api/comments/:comment_id', deleteCommentById);
+
+app.get('/api', (req, res) => {
+  res.status(200).send(endpoints);
+});
 
 app.all('/*', (req, res) => {
   res.status(404).send({ msg: 'route not found' });
