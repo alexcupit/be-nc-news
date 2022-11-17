@@ -212,6 +212,114 @@ describe('/api/articles', () => {
         expect(body.msg).toBe('invalid query key');
       });
   });
+  test('POST 200 - should accept a body of author (which references the username table), body, title and topic and responds with the same as well as votes, article_id, created_at and comment_count', () => {
+    const newArticle = {
+      username: 'butter_bridge',
+      body: 'an example article for testing',
+      title: 'an example title',
+      topic: 'cats',
+    };
+    return request(app)
+      .post('/api/articles')
+      .send(newArticle)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.article).toMatchObject({
+          author: newArticle.username,
+          body: newArticle.body,
+          title: newArticle.title,
+          topic: newArticle.topic,
+          article_id: expect.any(Number),
+          votes: 0,
+          comment_count: '0',
+          created_at: expect.any(String),
+        });
+      });
+  });
+  test('POST 400 - username of posted body does not exist in users table', () => {
+    return request(app)
+      .post('/api/articles')
+      .send({
+        username: 'fakeuser',
+        body: 'an example article for testing',
+        title: 'an example title',
+        topic: 'cats',
+      })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('foreign key violation');
+      });
+  });
+  test('POST 400 - topic of posted body does not exist in topics table', () => {
+    return request(app)
+      .post('/api/articles')
+      .send({
+        username: 'butter_bridge',
+        body: 'an example article for testing',
+        title: 'an example title',
+        topic: 'new topic',
+      })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('foreign key violation');
+      });
+  });
+  test('POST 400 -  posted body is missing required fields', () => {
+    return request(app)
+      .post('/api/articles')
+      .send({
+        usernme: 'butter_bridge',
+        body: 'an example article for testing',
+        title: 'an example title',
+        topic: 'cats',
+      })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('posted body missing required fields');
+      });
+  });
+  test('POST 400 -  posted body is missing required fields', () => {
+    return request(app)
+      .post('/api/articles')
+      .send({
+        username: 'butter_bridge',
+        bdy: 'an example article for testing',
+        title: 'an example title',
+        topic: 'cats',
+      })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('posted body missing required fields');
+      });
+  });
+  test('POST 400 -  posted body is missing required fields', () => {
+    return request(app)
+      .post('/api/articles')
+      .send({
+        username: 'butter_bridge',
+        body: 'an example article for testing',
+        ttle: 'an example title',
+        topic: 'cats',
+      })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('posted body missing required fields');
+      });
+  });
+  test('POST 400 -  posted body is missing required fields', () => {
+    return request(app)
+      .post('/api/articles')
+      .send({
+        username: 'butter_bridge',
+        body: 'an example article for testing',
+        title: 'an example title',
+        tpc: 'cats',
+      })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('posted body missing required fields');
+      });
+  });
 });
 
 describe('/api/articles/:article_id', () => {
