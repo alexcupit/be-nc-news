@@ -1,6 +1,6 @@
 # Northcoders News API
 
-This app has been created as part of the Northcoders Software Engineering course.
+This API has been created as part of the Northcoders Software Engineering course.
 
 The project allows the user to access a variety of endpoints that interact with a database of news articles. The server has been hosted which links to a hosted version of the database and it can also be used locally, simply follow the set up instructions below.
 
