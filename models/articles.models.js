@@ -74,3 +74,18 @@ exports.updateArticleById = (article_id, inc_votes) => {
     })
     .then((res) => res.rows[0]);
 };
+
+exports.insertArticle = (postedBody) => {
+  const { username: author, body, title, topic } = postedBody;
+  return db
+    .query(
+      `
+    INSERT INTO articles
+      (author, body, title, topic, votes)
+    VALUES
+      ($1, $2, $3, $4, 0)
+    RETURNING article_id;`,
+      [author, body, title, topic]
+    )
+    .then((res) => res.rows[0].article_id);
+};
