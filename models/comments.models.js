@@ -50,3 +50,22 @@ exports.removeCommentById = (comment_id) => {
       } else return res;
     });
 };
+
+exports.updateCommentByCommentId = (comment_id, inc_votes) => {
+  return db
+    .query(
+      `
+    UPDATE comments
+    SET votes = votes + $2
+    WHERE comment_id = $1
+    RETURNING *;`,
+      [comment_id, inc_votes]
+    )
+    .then((res) => {
+      if (!res.rows.length) {
+        return Promise.reject({ status: 404, msg: 'id not found' });
+      } else {
+        return res.rows[0];
+      }
+    });
+};
