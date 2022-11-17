@@ -34,3 +34,19 @@ exports.insertCommentByArticleId = (article_id, author, body) => {
       return res.rows[0];
     });
 };
+
+exports.removeCommentById = (comment_id) => {
+  return db
+    .query(
+      `
+    DELETE FROM comments
+    WHERE comment_id = $1
+    RETURNING *;`,
+      [comment_id]
+    )
+    .then((res) => {
+      if (!res.rows.length) {
+        return Promise.reject({ status: 404, msg: 'id not found' });
+      } else return res;
+    });
+};
