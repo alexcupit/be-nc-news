@@ -512,7 +512,7 @@ describe('/api', () => {
       .get('/api')
       .expect(200)
       .then(({ body }) => {
-        expect(body).toMatchObject({
+        expect(body.endpoints).toMatchObject({
           'GET /api': expect.any(Object),
           'GET /api/topics': expect.any(Object),
           'GET /api/articles': expect.any(Object),

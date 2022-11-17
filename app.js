@@ -1,4 +1,5 @@
 const express = require('express');
+const { readFile } = require('fs/promises');
 
 const {
   handleCustomErrors,
@@ -21,7 +22,6 @@ const {
 } = require('./controllers/comments.controllers');
 
 const { getUsers } = require('./controllers/users.controllers');
-const { endpoints } = require('./endpoints');
 
 const app = express();
 app.use(express.json());
@@ -43,7 +43,9 @@ app.patch('/api/articles/:article_id', patchArticleById);
 app.delete('/api/comments/:comment_id', deleteCommentById);
 
 app.get('/api', (req, res) => {
-  res.status(200).send(endpoints);
+  readFile('./endpoints.json', 'utf-8').then((endpoints) => {
+    res.status(200).send({ endpoints: JSON.parse(endpoints) });
+  });
 });
 
 app.all('/*', (req, res) => {
