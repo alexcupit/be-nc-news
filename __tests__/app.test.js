@@ -478,6 +478,14 @@ describe('/api/comments/:comment_id', () => {
       .expect(204)
       .then(({ body }) => {
         expect(body).toEqual({});
+      })
+      .then(() => {
+        return request(app)
+          .delete('/api/comments/1')
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).toBe('id not found');
+          });
       });
   });
   test('DELETE 404 - valid comment id but does not exist in db', () => {
