@@ -621,6 +621,70 @@ describe('/api/articles/:article_id/comments', () => {
         expect(body.msg).toBe('foreign key violation');
       });
   });
+  test('GET 200 - limit query: should now accept a limit query ', () => {
+    return request(app)
+      .get('/api/articles/1/comments?limit=5')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.comments.length).toBe(5);
+      });
+  });
+  test('GET 200 - limit query: should deafult to 10', () => {
+    return request(app)
+      .get('/api/articles/1/comments')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.comments.length).toBe(10);
+      });
+  });
+  test('GET 400 - responds with an error if limit query is invalid data type', () => {
+    return request(app)
+      .get('/api/articles/1/comments?limit=banana')
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('input uses invalid data type');
+      });
+  });
+  test('GET 200 - p query: should accept a page query and respond with the results of the relevant page', () => {
+    return request(app)
+      .get('/api/articles/1/comments?p=2')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.comments).toHaveLength(1);
+      });
+  });
+  test('GET 200 - p and limit queries work together', () => {
+    return request(app)
+      .get('/api/articles/1/comments?limit=2&p=6')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.comments).toHaveLength(1);
+      });
+  });
+  test('GET 400 - p query: responds with an error when p query is invalid data type', () => {
+    return request(app)
+      .get('/api/articles/1/comments?p=banana')
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('input uses invalid data type');
+      });
+  });
+  test('GET 200 - p query: responds with an empty array if the page surpasses the total number of comments', () => {
+    return request(app)
+      .get('/api/articles/1/comments?p=100')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.comments).toEqual([]);
+      });
+  });
+  test('GET 400 - should respond with an error if passed an unknown query name', () => {
+    return request(app)
+      .get('/api/articles/1/comments?sort_by=something')
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('invalid query');
+      });
+  });
 });
 
 describe('/api/users', () => {
