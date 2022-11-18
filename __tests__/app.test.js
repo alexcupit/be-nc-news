@@ -519,6 +519,36 @@ describe('/api/articles/:article_id', () => {
         });
       });
   });
+  test('DELETE 204 - should successfully delete the specified article id and give no response body', () => {
+    return request(app)
+      .delete('/api/articles/1')
+      .expect(204)
+      .then(({ body }) => expect(body).toEqual({}))
+      .then(() => {
+        return request(app)
+          .get('/api/articles/1')
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).toBe('id not found');
+          });
+      });
+  });
+  test('DELETE 404 - valid id but does not exist in db', () => {
+    return request(app)
+      .delete('/api/articles/9999')
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe('id not found');
+      });
+  });
+  test('DELETE 400 - article id is invalid', () => {
+    return request(app)
+      .delete('/api/articles/banana')
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('input uses invalid data type');
+      });
+  });
 });
 
 describe('/api/articles/:article_id/comments', () => {

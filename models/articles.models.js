@@ -118,3 +118,19 @@ exports.insertArticle = (postedBody) => {
     )
     .then((res) => res.rows[0].article_id);
 };
+
+exports.removeArticleById = (article_id) => {
+  return db
+    .query(
+      `
+    DELETE FROM articles
+    WHERE article_id = $1
+    RETURNING *;`,
+      [article_id]
+    )
+    .then((res) => {
+      if (!res.rows.length) {
+        return Promise.reject({ status: 404, msg: 'id not found' });
+      }
+    });
+};
