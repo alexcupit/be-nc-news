@@ -60,8 +60,6 @@ exports.fetchArticles = (
     GROUP BY articles.article_id
     ORDER BY articles.${sort_by.toLowerCase()} ${order}`;
 
-  console.log(queryStr, queryValues);
-
   const countPromise = db.query(countQueryStr, countQueryValues).then((res) => {
     return res.rowCount;
   });
