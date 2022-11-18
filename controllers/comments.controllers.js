@@ -7,11 +7,22 @@ const {
 
 exports.getCommentsByArticleId = (req, res, next) => {
   const { article_id } = req.params;
-  fetchCommentsByArticleId(article_id)
-    .then((comments) => {
-      res.status(200).send({ comments });
+  const { limit, p } = req.query;
+  const validQueries = ['limit', 'p'];
+  const givenQueries = Object.keys(req.query);
+  if (
+    !givenQueries.every((query) => {
+      return validQueries.includes(query);
     })
-    .catch(next);
+  ) {
+    res.status(400).send({ msg: 'invalid query' });
+  } else {
+    fetchCommentsByArticleId(article_id, limit, p)
+      .then((comments) => {
+        res.status(200).send({ comments });
+      })
+      .catch(next);
+  }
 };
 
 exports.postCommentByArticleId = (req, res, next) => {

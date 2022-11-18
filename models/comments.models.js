@@ -1,7 +1,7 @@
 const db = require('../db/connection.js');
 const { fetchArticleById } = require('./articles.models.js');
 
-exports.fetchCommentsByArticleId = (article_id) => {
+exports.fetchCommentsByArticleId = (article_id, limit = 10, p = 1) => {
   return fetchArticleById(article_id)
     .then(() => {
       return db.query(
@@ -9,8 +9,9 @@ exports.fetchCommentsByArticleId = (article_id) => {
     SELECT comment_id, body, author, votes, created_at
     FROM comments
     WHERE article_id = $1
-    ORDER BY created_at DESC;`,
-        [article_id]
+    ORDER BY created_at DESC
+    LIMIT $2 OFFSET (($3-1)*$2);`,
+        [article_id, limit, p]
       );
     })
     .then((res) => {
