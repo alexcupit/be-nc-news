@@ -59,10 +59,10 @@ describe('/api/articles', () => {
         );
         expect(article_id_1[0].comment_count).toBe('11');
 
-        const article_id_7 = body.articles.filter(
-          (article) => article.article_id === 7
+        const article_id_2 = body.articles.filter(
+          (article) => article.article_id === 2
         );
-        expect(article_id_7[0].comment_count).toBe('0');
+        expect(article_id_2[0].comment_count).toBe('0');
       });
   });
   test('GET 200 - the objects in the response body should be sorted by date in descending order ', () => {
@@ -79,7 +79,7 @@ describe('/api/articles', () => {
       .get('/api/articles?topic=mitch')
       .expect(200)
       .then(({ body }) => {
-        expect(body.articles.length).toBe(11);
+        expect(body.articles.length).toBeGreaterThan(0);
         body.articles.forEach((article) => {
           expect(article).toMatchObject({
             topic: 'mitch',
@@ -97,7 +97,7 @@ describe('/api/articles', () => {
       .get('/api/articles?topic=MiTcH')
       .expect(200)
       .then(({ body }) => {
-        expect(body.articles.length).toBe(11);
+        expect(body.articles.length).toBeGreaterThan(0);
         body.articles.forEach((article) => {
           expect(article).toMatchObject({
             topic: 'mitch',
@@ -172,7 +172,7 @@ describe('/api/articles', () => {
       .expect(200)
       .then(({ body }) => {
         expect(body.articles).toBeSortedBy('votes', { descending: true });
-        expect(body.articles.length).toBe(11);
+        expect(body.articles.length).toBeGreaterThan(0);
         body.articles.forEach((article) => {
           expect(article).toMatchObject({
             topic: 'mitch',
@@ -190,7 +190,7 @@ describe('/api/articles', () => {
       .get('/api/articles?topic=mitch&sort_by=article_id&order=asc')
       .expect(200)
       .then(({ body }) => {
-        expect(body.articles.length).toBe(11);
+        expect(body.articles.length).toBeGreaterThan(0);
         expect(body.articles).toBeSortedBy('article_id');
         body.articles.forEach((article) => {
           expect(article).toMatchObject({
@@ -320,6 +320,68 @@ describe('/api/articles', () => {
         expect(body.msg).toBe('posted body missing required fields');
       });
   });
+  test('GET 200 - limit query: now defaults to the first 10 results but response also contains a total_count ', () => {
+    return request(app)
+      .get('/api/articles')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles).toHaveLength(10);
+        expect(body.total_count).toBe(12);
+      });
+  });
+  test('GET 200 - limit query: can accept a value for limit query', () => {
+    return request(app)
+      .get('/api/articles?limit=5')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles).toHaveLength(5);
+        expect(body.total_count).toBe(12);
+      });
+  });
+  test('GET 400 - limit query: responds with an error if the wrong data type is given', () => {
+    return request(app)
+      .get('/api/articles?limit=banana')
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('invalid limit query');
+      });
+  });
+  test('GET 200 - p query: should accept a p query referencing the page of results to display', () => {
+    return request(app)
+      .get('/api/articles?limit=5&p=3')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles).toHaveLength(2);
+        expect(body.total_count).toBe(12);
+      });
+  });
+  test('GET 400 - p query: should arespond with an error if passed invalid data type', () => {
+    return request(app)
+      .get('/api/articles?limit=5&p=banana')
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('invalid page query');
+      });
+  });
+  test('GET 200 - p query: when p is set too large, respond with the total count and an empty array', () => {
+    return request(app)
+      .get('/api/articles?limit=5&p=100')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.total_count).toBe(12);
+        expect(body.articles).toEqual([]);
+      });
+  });
+  test('GET 200 - multiple queries still work together', () => {
+    return request(app)
+      .get('/api/articles?limit=5&p=2&topic=mitch&sort_by=article_id&order=asc')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.total_count).toBe(12);
+        expect(body.articles.length).toBe(5);
+        expect(body.articles).toBeSortedBy('article_id');
+      });
+  });
 });
 
 describe('/api/articles/:article_id', () => {
@@ -444,7 +506,7 @@ describe('/api/articles/:article_id/comments', () => {
       .get('/api/articles/1/comments')
       .expect(200)
       .then(({ body }) => {
-        expect(body.comments.length).toBe(11);
+        expect(body.comments.length).toBeGreaterThan(0);
         body.comments.forEach((comment) =>
           expect(comment).toMatchObject({
             comment_id: expect.any(Number),
