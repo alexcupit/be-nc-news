@@ -6,8 +6,8 @@ const {
 } = require('../models/articles.models');
 
 exports.getArticles = (req, res, next) => {
-  const { topic, sort_by, order } = req.query;
-  const validQueryKeys = ['topic', 'sort_by', 'order'];
+  const { topic, sort_by, order, limit, p } = req.query;
+  const validQueryKeys = ['topic', 'sort_by', 'order', 'limit', 'p'];
   const queryKeys = Object.keys(req.query);
   if (
     !queryKeys.every((key) => {
@@ -16,9 +16,9 @@ exports.getArticles = (req, res, next) => {
   ) {
     res.status(400).send({ msg: 'invalid query key' });
   } else {
-    fetchArticles(topic, sort_by, order)
-      .then((articles) => {
-        res.status(200).send({ articles });
+    fetchArticles(topic, sort_by, order, limit, p)
+      .then((articlesWithCount) => {
+        res.status(200).send(articlesWithCount);
       })
       .catch(next);
   }

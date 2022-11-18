@@ -1,6 +1,12 @@
 const db = require('../db/connection.js');
 
-exports.fetchArticles = (topic, sort_by = 'created_at', order = 'DESC') => {
+exports.fetchArticles = (
+  topic,
+  sort_by = 'created_at',
+  order = 'DESC',
+  limit = 10,
+  p = 1
+) => {
   const validColumns = [
     'title',
     'topic',
@@ -19,9 +25,21 @@ exports.fetchArticles = (topic, sort_by = 'created_at', order = 'DESC') => {
     LEFT JOIN comments
     USING (article_id)`;
 
+  if (/^\d+$/.test(+limit)) {
+    queryValues.push(+limit);
+  } else {
+    return Promise.reject({ status: 400, msg: 'invalid limit query' });
+  }
+
+  if (/^\d+$/.test(+p)) {
+    queryValues.push(+p);
+  } else {
+    return Promise.reject({ status: 400, msg: 'invalid page query' });
+  }
+
   if (topic) {
     queryValues.push(topic.toLowerCase());
-    queryStr += ` WHERE topic = $1`;
+    queryStr += ` WHERE topic = $3`;
   }
 
   if (!validColumns.includes(sort_by.toLowerCase())) {
@@ -34,11 +52,22 @@ exports.fetchArticles = (topic, sort_by = 'created_at', order = 'DESC') => {
 
   queryStr += ` 
     GROUP BY articles.article_id
-    ORDER BY articles.${sort_by.toLowerCase()} ${order};`;
+    ORDER BY articles.${sort_by.toLowerCase()} ${order}
+    LIMIT $1 OFFSET (($2 - 1) * $1);`;
 
-  return db.query(queryStr, queryValues).then((res) => {
+  const rowsPromise = db.query(queryStr, queryValues).then((res) => {
     return res.rows;
   });
+
+  const countPromise = db.query('SELECT * FROM articles').then((res) => {
+    return res.rowCount;
+  });
+
+  return Promise.all([rowsPromise, countPromise]).then(
+    ([articles, total_count]) => {
+      return { total_count, articles };
+    }
+  );
 };
 
 exports.fetchArticleById = (article_id) => {
