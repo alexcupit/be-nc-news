@@ -398,7 +398,7 @@ describe('/api/articles', () => {
       .get('/api/articles?limit=5&p=2&topic=mitch&sort_by=article_id&order=asc')
       .expect(200)
       .then(({ body }) => {
-        expect(body.total_count).toBe(12);
+        expect(body.total_count).toBe(11);
         expect(body.articles.length).toBe(5);
         expect(body.articles).toBeSortedBy('article_id');
       });
