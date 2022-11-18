@@ -15,15 +15,27 @@ exports.fetchArticles = (
     'votes',
     'created_at',
     'article_id',
+    'comment_count',
   ];
   const validOrders = ['ASC', 'DESC'];
   let queryValues = [];
+  let countQueryValues = [];
+
+  if (!validColumns.includes(sort_by.toLowerCase())) {
+    return Promise.reject({ status: 400, msg: 'invalid sort_by query' });
+  }
+
+  if (!validOrders.includes(order.toUpperCase())) {
+    return Promise.reject({ status: 400, msg: 'order must be asc or desc' });
+  }
 
   let queryStr = `
     SELECT article_id, title, articles.author, topic, articles.created_at, articles.votes, COUNT(comment_id) AS comment_count
     FROM articles
     LEFT JOIN comments
     USING (article_id)`;
+
+  let countQueryStr = `SELECT * FROM articles`;
 
   if (/^\d+$/.test(+limit)) {
     queryValues.push(+limit);
@@ -40,31 +52,26 @@ exports.fetchArticles = (
   if (topic) {
     queryValues.push(topic.toLowerCase());
     queryStr += ` WHERE topic = $3`;
-  }
-
-  if (!validColumns.includes(sort_by.toLowerCase())) {
-    return Promise.reject({ status: 400, msg: 'invalid sort_by query' });
-  }
-
-  if (!validOrders.includes(order.toUpperCase())) {
-    return Promise.reject({ status: 400, msg: 'order must be asc or desc' });
+    countQueryValues.push(topic.toLowerCase());
+    countQueryStr += ` WHERE topic = $1`;
   }
 
   queryStr += ` 
     GROUP BY articles.article_id
-    ORDER BY articles.${sort_by.toLowerCase()} ${order}
-    LIMIT $1 OFFSET (($2 - 1) * $1);`;
+    ORDER BY articles.${sort_by.toLowerCase()} ${order}`;
 
-  const rowsPromise = db.query(queryStr, queryValues).then((res) => {
-    return res.rows;
-  });
-
-  const countPromise = db.query('SELECT * FROM articles').then((res) => {
+  const countPromise = db.query(countQueryStr, countQueryValues).then((res) => {
     return res.rowCount;
   });
 
-  return Promise.all([rowsPromise, countPromise]).then(
-    ([articles, total_count]) => {
+  queryStr += ` LIMIT $1 OFFSET (($2 - 1) * $1);`;
+
+  const articlesPromise = db.query(queryStr, queryValues).then((res) => {
+    return res.rows;
+  });
+
+  return Promise.all([countPromise, articlesPromise]).then(
+    ([total_count, articles]) => {
       return { total_count, articles };
     }
   );
