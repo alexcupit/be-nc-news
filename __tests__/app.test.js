@@ -24,6 +24,27 @@ describe('/api/topics', () => {
         });
       });
   });
+  test('POST 200 - accepts a new topic slug and description', () => {
+    return request(app)
+      .post('/api/topics')
+      .send({ slug: 'new topic', description: 'description for new topic' })
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.topic).toEqual({
+          slug: 'new topic',
+          description: 'description for new topic',
+        });
+      });
+  });
+  test('POST 400 - posted body is missing required field', () => {
+    return request(app)
+      .post('/api/topics')
+      .send({ slg: 'new topic', description: 'description for new topic' })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('posted body missing required fields');
+      });
+  });
 });
 
 describe('/api/articles', () => {

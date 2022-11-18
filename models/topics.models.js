@@ -5,3 +5,18 @@ exports.fetchTopics = () => {
     return res.rows;
   });
 };
+
+exports.insertTopic = (body) => {
+  const { slug, description } = body;
+  return db
+    .query(
+      `
+    INSERT INTO topics
+      (slug, description)
+    VALUES
+      ($1, $2)
+    RETURNING *;`,
+      [slug, description]
+    )
+    .then((res) => res.rows[0]);
+};
