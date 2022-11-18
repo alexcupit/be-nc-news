@@ -1,6 +1,6 @@
 const db = require('../db/connection.js');
 
-exports.fetchArticles = (
+exports.fetchArticles = async (
   topic,
   sort_by = 'created_at',
   order = 'DESC',
@@ -35,7 +35,16 @@ exports.fetchArticles = (
     LEFT JOIN comments
     USING (article_id)`;
 
-  let countQueryStr = `SELECT * FROM articles`;
+  if (topic) {
+    queryValues.push(topic.toLowerCase());
+    queryStr += ` WHERE topic = $1`;
+  }
+
+  queryStr += ` 
+    GROUP BY articles.article_id
+    ORDER BY articles.${sort_by.toLowerCase()} ${order}`;
+
+  const { rowCount: total_count } = await db.query(queryStr, queryValues);
 
   if (/^\d+$/.test(+limit)) {
     queryValues.push(+limit);
@@ -49,95 +58,79 @@ exports.fetchArticles = (
     return Promise.reject({ status: 400, msg: 'invalid page query' });
   }
 
-  if (topic) {
-    queryValues.push(topic.toLowerCase());
-    queryStr += ` WHERE topic = $3`;
-    countQueryValues.push(topic.toLowerCase());
-    countQueryStr += ` WHERE topic = $1`;
-  }
+  queryStr += topic
+    ? ` LIMIT $2 OFFSET (($3 - 1) * $2);`
+    : ` LIMIT $1 OFFSET (($2 - 1) * $1);`;
 
-  queryStr += ` 
-    GROUP BY articles.article_id
-    ORDER BY articles.${sort_by.toLowerCase()} ${order}`;
+  const { rows: articles } = await db.query(queryStr, queryValues);
 
-  const countPromise = db.query(countQueryStr, countQueryValues).then((res) => {
-    return res.rowCount;
-  });
-
-  queryStr += ` LIMIT $1 OFFSET (($2 - 1) * $1);`;
-
-  const articlesPromise = db.query(queryStr, queryValues).then((res) => {
-    return res.rows;
-  });
-
-  return Promise.all([countPromise, articlesPromise]).then(
-    ([total_count, articles]) => {
-      return { total_count, articles };
-    }
-  );
+  return { total_count, articles };
 };
 
-exports.fetchArticleById = (article_id) => {
-  return db
-    .query(
-      `
+exports.fetchArticleById = async (article_id) => {
+  const {
+    rows: [article],
+  } = await db.query(
+    `
         SELECT article_id, title, articles.author, topic, articles.body, articles.created_at, articles.votes, COUNT(comment_id) AS comment_count
         FROM articles
         LEFT JOIN comments
         USING (article_id)
         WHERE articles.article_id = $1
         GROUP BY articles.article_id;`,
-      [article_id]
-    )
-    .then((res) => {
-      if (!res.rows.length) {
-        return Promise.reject({ status: 404, msg: 'id not found' });
-      } else return res.rows[0];
-    });
+    [article_id]
+  );
+
+  if (!article) {
+    return Promise.reject({ status: 404, msg: 'id not found' });
+  } else return article;
 };
 
-exports.updateArticleById = (article_id, inc_votes) => {
-  return this.fetchArticleById(article_id)
-    .then(() => {
-      return db.query(
-        `
+exports.updateArticleById = async (article_id, inc_votes) => {
+  await this.fetchArticleById(article_id);
+
+  const {
+    rows: [article],
+  } = await db.query(
+    `
     UPDATE articles
     SET votes = votes + $2
     WHERE article_id = $1
     RETURNING *;`,
-        [article_id, inc_votes]
-      );
-    })
-    .then((res) => res.rows[0]);
+    [article_id, inc_votes]
+  );
+
+  return article;
 };
 
-exports.insertArticle = (postedBody) => {
+exports.insertArticle = async (postedBody) => {
   const { username: author, body, title, topic } = postedBody;
-  return db
-    .query(
-      `
+  const {
+    rows: [{ article_id }],
+  } = await db.query(
+    `
     INSERT INTO articles
       (author, body, title, topic, votes)
     VALUES
       ($1, $2, $3, $4, 0)
     RETURNING article_id;`,
-      [author, body, title, topic]
-    )
-    .then((res) => res.rows[0].article_id);
+    [author, body, title, topic]
+  );
+  return article_id;
 };
 
-exports.removeArticleById = (article_id) => {
-  return db
-    .query(
-      `
+exports.removeArticleById = async (article_id) => {
+  const {
+    rows: [article],
+  } = await db.query(
+    `
     DELETE FROM articles
     WHERE article_id = $1
     RETURNING *;`,
-      [article_id]
-    )
-    .then((res) => {
-      if (!res.rows.length) {
-        return Promise.reject({ status: 404, msg: 'id not found' });
-      }
-    });
+    [article_id]
+  );
+
+  if (!article) {
+    return Promise.reject({ status: 404, msg: 'id not found' });
+  }
 };

@@ -1,28 +1,27 @@
 const db = require('../db/connection');
 
-exports.fetchUsers = () => {
-  return db
-    .query(
-      `
+exports.fetchUsers = async () => {
+  const { rows: users } = await db.query(
+    `
         SELECT * FROM users;`
-    )
-    .then((res) => res.rows);
+  );
+  return users;
 };
 
-exports.fetchUsersByUsername = (username) => {
-  return db
-    .query(
-      `
+exports.fetchUsersByUsername = async (username) => {
+  const {
+    rows: [user],
+  } = await db.query(
+    `
   SELECT username, name, avatar_url
   FROM users
   WHERE username = $1`,
-      [username]
-    )
-    .then((res) => {
-      if (!res.rows.length) {
-        return Promise.reject({ status: 404, msg: 'username not found' });
-      } else {
-        return res.rows[0];
-      }
-    });
+    [username]
+  );
+
+  if (!user) {
+    return Promise.reject({ status: 404, msg: 'username not found' });
+  } else {
+    return user;
+  }
 };

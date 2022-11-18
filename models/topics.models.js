@@ -1,22 +1,22 @@
 const db = require('../db/connection.js');
 
-exports.fetchTopics = () => {
-  return db.query('SELECT * FROM topics;').then((res) => {
-    return res.rows;
-  });
+exports.fetchTopics = async () => {
+  const { rows: topics } = await db.query('SELECT * FROM topics;');
+  return topics;
 };
 
-exports.insertTopic = (body) => {
+exports.insertTopic = async (body) => {
   const { slug, description } = body;
-  return db
-    .query(
-      `
+  const {
+    rows: [topic],
+  } = await db.query(
+    `
     INSERT INTO topics
       (slug, description)
     VALUES
       ($1, $2)
     RETURNING *;`,
-      [slug, description]
-    )
-    .then((res) => res.rows[0]);
+    [slug, description]
+  );
+  return topic;
 };
