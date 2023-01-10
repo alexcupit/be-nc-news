@@ -4,6 +4,8 @@ This API has been created as part of the Northcoders Software Engineering course
 
 The project allows the user to access a variety of endpoints that interact with a database of news articles. The server has been hosted which links to a hosted version of the database and it can also be used locally, simply follow the set up instructions below.
 
+The front end created to interact with this API can be found [here](https://github.com/alexcupit/fe-nc-news)
+
 ## Hosted Version
 
 The server has been hosted at:
